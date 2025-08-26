@@ -22,8 +22,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
-            .addFilterBefore(new BearerTokenFilter(token), OncePerRequestFilter.class);
+            .authorizeHttpRequests(auth -> auth.anyRequest().authenticated());
 
         return http.build();
     }
@@ -52,3 +51,4 @@ public class SecurityConfig {
         }
     }
 }
+
