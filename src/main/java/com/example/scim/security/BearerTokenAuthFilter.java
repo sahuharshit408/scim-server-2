@@ -1,23 +1,24 @@
 package com.example.scim.security;
 
-import com.example.scim.config.SecurityConfig.ScimAuthentication;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.stereotype.Component;
+import org.springframework.core.annotation.Order;
 
 import java.io.IOException;
 
 @Component
-@order(1)
+@Order(1)
 public class BearerTokenAuthFilter extends OncePerRequestFilter {
   private final String expectedToken;
 
-  public BearerTokenAuthFilter(String expectedToken) {
+  public BearerTokenAuthFilter(@Value("${scim.token}") String expectedToken) {
     this.expectedToken = expectedToken;
-  }
+    }
 
   @Override
   protected void doFilterInternal(HttpServletRequest req,
