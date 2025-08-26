@@ -8,6 +8,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.stereotype.Component;
 import org.springframework.core.annotation.Order;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.io.IOException;
 
@@ -40,3 +41,4 @@ public class BearerTokenAuthFilter extends OncePerRequestFilter {
     chain.doFilter(req, res);
   }
 }
+
