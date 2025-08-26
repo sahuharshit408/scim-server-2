@@ -31,6 +31,10 @@ public class BearerTokenAuthFilter extends OncePerRequestFilter {
       return;
     }
     String token = auth.substring("Bearer ".length()).trim();
+
+    System.out.println("EXPECTED TOKEN = " + expectedToken);
+    System.out.println("RECEIVED TOKEN = " + token);
+
     if (!token.equals(expectedToken)) {
       res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
       return;
@@ -41,4 +45,5 @@ public class BearerTokenAuthFilter extends OncePerRequestFilter {
     chain.doFilter(req, res);
   }
 }
+
 
