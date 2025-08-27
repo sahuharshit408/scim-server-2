@@ -18,10 +18,11 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
             .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
-            //.addFilterBefore(new BearerTokenAuthFilter(expectedToken), UsernamePasswordAuthenticationFilter.class)
+            .authorizeHttpRequests(auth -> auth.anyRequest().Authenticated())
+            .addFilterBefore(new BearerTokenAuthFilter(expectedToken), UsernamePasswordAuthenticationFilter.class)
             .build();
     }
 }
+
 
 
