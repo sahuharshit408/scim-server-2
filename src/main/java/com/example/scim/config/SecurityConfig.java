@@ -19,7 +19,8 @@ public class SecurityConfig {
         return http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
-            .addFilterBefore(new BearerTokenAuthFilter(expectedToken), UsernamePasswordAuthenticationFilter.class)
+            //.addFilterBefore(new BearerTokenAuthFilter(expectedToken), UsernamePasswordAuthenticationFilter.class)
             .build();
     }
 }
+
