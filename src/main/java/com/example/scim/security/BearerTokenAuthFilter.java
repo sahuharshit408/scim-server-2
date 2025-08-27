@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.core.annotation.Order;
 import org.springframework.beans.factory.annotation.Value;
 
+
 import java.io.IOException;
 
 @Component
@@ -30,12 +31,18 @@ public class BearerTokenAuthFilter extends OncePerRequestFilter {
       res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
       return;
     }
+
+    System.out.println("🔐 BearerTokenAuthFilter:");
+    System.out.println("Expected Token: " + expectedToken);
+
     String token = auth.substring("Bearer ".length()).trim();
 
-    System.out.println("EXPECTED TOKEN = " + expectedToken);
-    System.out.println("RECEIVED TOKEN = " + token);
+    System.out.println("Received Token: " + token);
 
     if (!token.equals(expectedToken)) {
+
+
+      System.out.println("Token not equal to expected Token !!!!!!!!!!!!!!!!!!!!!!!!!1");
       res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
       return;
     }
@@ -45,5 +52,3 @@ public class BearerTokenAuthFilter extends OncePerRequestFilter {
     chain.doFilter(req, res);
   }
 }
-
-
