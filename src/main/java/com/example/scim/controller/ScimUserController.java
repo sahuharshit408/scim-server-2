@@ -26,6 +26,21 @@ public class ScimUserController {
         return ResponseEntity.ok(user);
     }
 
+    @PostMapping("/.search")
+    public ResponseEntity<?> searchUsers(@RequestBody Map<String, Object> body) {
+        System.out.println("[SEARCH] Received search request: " + body);
+        return ResponseEntity.ok(Map.of(
+          "schemas", List.of("urn:ietf:params:scim:api:messages:2.0:ListResponse"),
+          "totalResults", 0,
+          "Resources", List.of(),
+          "startIndex", 1,
+          "itemsPerPage", 0
+        ));
+    }
+
+
+
+
     @PutMapping("/{id}")
     public ResponseEntity<ScimUser> update(@PathVariable String id, @RequestBody ScimUser user) {
         user.setId(id);
@@ -62,3 +77,4 @@ public class ScimUserController {
         return ResponseEntity.noContent().build();
     }
 }
+
