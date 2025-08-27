@@ -13,8 +13,6 @@ import org.springframework.beans.factory.annotation.Value;
 
 import java.io.IOException;
 
-@Component
-@Order(1)
 public class BearerTokenAuthFilter extends OncePerRequestFilter {
   private final String expectedToken;
 
@@ -52,3 +50,4 @@ public class BearerTokenAuthFilter extends OncePerRequestFilter {
     chain.doFilter(req, res);
   }
 }
+
