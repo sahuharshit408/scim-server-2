@@ -16,6 +16,25 @@ public class ScimUserController {
     @Value("${scim.token}") private String token;
 
 
+    // @GetMapping
+    // public ResponseEntity<?> listUsers(
+    //     @RequestParam(required = false) String filter,
+    //     @RequestParam(defaultValue = "1") int startIndex,
+    //     @RequestParam(defaultValue = "100") int count
+    // ) {
+    //     System.out.printf("[GET] Users list requested. filter=%s, startIndex=%d, count=%d%n", filter, startIndex, count);
+        
+    //     // Just return empty list to pass Okta test
+    //     return ResponseEntity.ok(Map.of(
+    //         "schemas", List.of("urn:ietf:params:scim:api:messages:2.0:ListResponse"),
+    //         "totalResults", 0,
+    //         "Resources", List.of(),
+    //         "startIndex", startIndex,
+    //         "itemsPerPage", 0
+    //     ));
+    // }
+
+
     @GetMapping
     public ResponseEntity<?> listUsers(
         @RequestParam(required = false) String filter,
@@ -24,14 +43,38 @@ public class ScimUserController {
     ) {
         System.out.printf("[GET] Users list requested. filter=%s, startIndex=%d, count=%d%n", filter, startIndex, count);
         
-        // Just return empty list to pass Okta test
-        return ResponseEntity.ok(Map.of(
+        List<ScimUser> userList = new ArrayList<>(users.values());
+        // Apply filter if present
+        if (filter != null && filter.contains("userName eq")) {
+            try {
+                // Extract the value from the filter string: userName eq "value"
+                String[] parts = filter.split("\"");
+                if (parts.length >= 2) {
+                    String targetUsername = parts[1];
+                    userList = userList.stream()
+                        .filter(user -> targetUsername.equalsIgnoreCase(user.getUserName()))
+                        .toList();
+                }
+            } catch (Exception e) {
+                System.out.println("⚠️ Failed to parse filter: " + e.getMessage());
+                userList = List.of(); // Return empty to avoid breaking Okta
+            }
+        }
+
+        int total = userList.size();
+        int from = Math.max(0, startIndex - 1);
+        int to = Math.min(from + count, total);
+        List<ScimUser> paged = from < to ? userList.subList(from, to) : List.of();
+
+        Map<String, Object> response = Map.of(
             "schemas", List.of("urn:ietf:params:scim:api:messages:2.0:ListResponse"),
-            "totalResults", 0,
-            "Resources", List.of(),
+            "totalResults", total,
             "startIndex", startIndex,
-            "itemsPerPage", 0
-        ));
+            "itemsPerPage", paged.size(),
+            "Resources", paged
+        );
+
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping
@@ -96,5 +139,6 @@ public class ScimUserController {
         return ResponseEntity.noContent().build();
     }
 }
+
 
 
