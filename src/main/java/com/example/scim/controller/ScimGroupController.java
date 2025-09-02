@@ -61,7 +61,21 @@ public class ScimGroupController {
         for (Map<String, Object> op : operations) {
             String operation = (String) op.get("op");
             String path = (String) op.get("path");
-            List<Map<String, String>> value = (List<Map<String, String>>) op.get("value");
+            // List<Map<String, String>> value = (List<Map<String, String>>) op.get("value");
+
+            Object rawValue = op.get("value");
+
+            if ("add".equalsIgnoreCase(operation) && rawValue instanceof List<?> list) {
+                for (Object item : list) {
+                    if (item instanceof Map<?, ?> memberMap) {
+                        ScimGroup.Member member = new ScimGroup.Member();
+                        member.setValue(String.valueOf(memberMap.get("value")));
+                        member.setDisplay(String.valueOf(memberMap.get("display")));
+                        group.getMembers().add(member);
+                    }
+                }
+            }
+
 
             if ("add".equalsIgnoreCase(operation) && path.equalsIgnoreCase("members")) {
                 if (group.getMembers() == null) group.setMembers(new ArrayList<>());
@@ -81,4 +95,5 @@ public class ScimGroupController {
         return ResponseEntity.ok(group);
     }
 }
+
     
