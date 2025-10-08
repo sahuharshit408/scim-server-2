@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequestMapping("/scim/v2/Users")
 public class ScimUserController {
 
-    private final Map<String, ScimUser> users = new ConcurrentHashMap<>();
+    private static final Map<String, ScimUser> users = new ConcurrentHashMap<>();
     @Value("${scim.token}") private String token;
 
 
@@ -139,6 +139,7 @@ public class ScimUserController {
         return ResponseEntity.noContent().build();
     }
 }
+
 
 
 
