@@ -1,6 +1,7 @@
 package com.example.scim.controller;
 
 import com.example.scim.model.ScimGroup;
+import com.example.scim.model.ScimUser; // Required to read user list
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,8 +18,21 @@ public class ScimGroupController {
     public ResponseEntity<ScimGroup> createGroup(@RequestBody ScimGroup group) {
         String id = UUID.randomUUID().toString();
         group.setId(id);
+
+        // NEW: Add all users from ScimUserController.users as members
+        List<ScimGroup.Member> members = new ArrayList<>();
+
+        for (ScimUser user : ScimUserController.users.values()) {
+            ScimGroup.Member m = new ScimGroup.Member();
+            m.setValue(user.getId());
+            m.setDisplay(user.getUserName());
+            members.add(m);
+        }
+
+        group.setMembers(members);
         groups.put(id, group);
-        System.out.printf("[CREATE GROUP] id=%s, name=%s%n", id, group.getDisplayName());
+
+        System.out.printf("[CREATE GROUP] id=%s, name=%s, members=%s%n", id, group.getDisplayName(), group.getMembers());
         return ResponseEntity.ok(group);
     }
 
@@ -56,15 +70,36 @@ public class ScimGroupController {
         if (group == null) return ResponseEntity.notFound().build();
 
         @SuppressWarnings("unchecked")
-            List<Map<String, Object>> operations = (List<Map<String, Object>>) patch.get("Operations");
+        List<Map<String, Object>> operations = (List<Map<String, Object>>) patch.get("Operations");
 
-            for (Map<String, Object> op : operations) {
-                String operation = (String) op.get("op");
-                String path = (String) op.get("path");
-                Object rawValue = op.get("value");
+        for (Map<String, Object> op : operations) {
+            String operation = (String) op.get("op");
+            String path = (String) op.get("path");
+            Object rawValue = op.get("value");
 
-                // Handle "add" members
-                if ("add".equalsIgnoreCase(operation) && "members".equalsIgnoreCase(path) && rawValue instanceof List<?> list) {
+            // Add members
+            if ("add".equalsIgnoreCase(operation) && "members".equalsIgnoreCase(path) && rawValue instanceof List<?> list) {
+                for (Object obj : list) {
+                    if (obj instanceof Map<?, ?> memberMap) {
+                        ScimGroup.Member member = new ScimGroup.Member();
+                        member.setValue(String.valueOf(memberMap.get("value")));
+                        member.setDisplay(String.valueOf(memberMap.get("display")));
+                        group.getMembers().add(member);
+                    }
+                }
+            }
+
+            // Remove a specific member
+            if ("remove".equalsIgnoreCase(operation) && path != null && path.startsWith("members")) {
+                String userId = path.replaceAll("members\\[value eq \\\"", "").replaceAll("\"\\]", "");
+                group.getMembers().removeIf(m -> m.getValue().equals(userId));
+            }
+
+            // Replace members list
+            if ("replace".equalsIgnoreCase(operation) && rawValue instanceof Map<?, ?> map) {
+                Object memberList = map.get("members");
+                if (memberList instanceof List<?> list) {
+                    group.getMembers().clear();
                     for (Object obj : list) {
                         if (obj instanceof Map<?, ?> memberMap) {
                             ScimGroup.Member member = new ScimGroup.Member();
@@ -74,35 +109,10 @@ public class ScimGroupController {
                         }
                     }
                 }
-
-                // Handle "remove" for specific user ID
-                if ("remove".equalsIgnoreCase(operation) && path != null && path.startsWith("members")) {
-                    String userId = path.replaceAll("members\\[value eq \\\"", "").replaceAll("\"\\]", "");
-                    group.getMembers().removeIf(m -> m.getValue().equals(userId));
-                }
-
-                // Handle "replace" entire member list
-                if ("replace".equalsIgnoreCase(operation) && rawValue instanceof Map<?, ?> map) {
-                    Object memberList = map.get("members");
-                    if (memberList instanceof List<?> list) {
-                        group.getMembers().clear();
-                        for (Object obj : list) {
-                            if (obj instanceof Map<?, ?> memberMap) {
-                                ScimGroup.Member member = new ScimGroup.Member();
-                                member.setValue(String.valueOf(memberMap.get("value")));
-                                member.setDisplay(String.valueOf(memberMap.get("display")));
-                                group.getMembers().add(member);
-                            }
-                        }
-                    }
-                }
             }
+        }
 
         System.out.printf("[PATCH GROUP] id=%s, members=%s%n", id, group.getMembers());
         return ResponseEntity.ok(group);
     }
-
 }
-
-    
-
